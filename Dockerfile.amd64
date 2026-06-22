@@ -2,7 +2,8 @@
 ### FROM lscr.io/linuxserver/ubuntu-desktop:jammy
 # 使用官方Ubuntu22.04，国内加速器可稳定拉取，无限流
 ### FROM ubuntu:22.04
-FROM registry.cn-hangzhou.aliyuncs.com/library/ubuntu:22.04
+### FROM registry.cn-hangzhou.aliyuncs.com/library/ubuntu:22.04
+FROM crpi-epluhz6jykyccmf4.cn-hangzhou.personal.cr.aliyuncs.com/baidunetdisk/ubuntu:22.04
 
 RUN mkdir /tmp/docker-root
 COPY ./docker-root /tmp/docker-root/
