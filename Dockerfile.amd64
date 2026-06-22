@@ -8,6 +8,9 @@ RUN rm -rf /tmp/docker-root
 
 RUN wget -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb
 
+
+
+
 RUN apt-get update && \
 	apt-get install -y wget language-pack-zh-hans tzdata fontconfig fonts-wqy-zenhei && \
 	apt-get install -y --no-install-recommends fcitx fcitx-ui-classic fcitx-pinyin && \
