@@ -2,40 +2,37 @@
 ### FROM lscr.io/linuxserver/ubuntu-desktop:jammy
 # 使用官方Ubuntu22.04，国内加速器可稳定拉取，无限流
 FROM ubuntu:22.04
-ENV LANG=zh_CN.UTF-8 LC_ALL=zh_CN.UTF-8 TZ=Asia/Shanghai
-# 单独补充安装wget
-RUN apt-get update && apt-get install -y wget
+
+# 先安装语言包，再定义中文环境，消除locale警告
+RUN apt-get update && apt-get install -y --no-install-recommends language-pack-zh-hans tzdata
+ENV LANG=zh_CN.UTF-8 \
+    LC_ALL=zh_CN.UTF-8 \
+    TZ=Asia/Shanghai
+
+# 一次性安装全部依赖：wget、桌面、中文字体、输入法、novnc
+RUN apt-get install -y --no-install-recommends \
+    wget curl fontconfig fonts-wqy-zenhei \
+    xorg openbox xfe dbus-user-session fcitx fcitx-ui-classic fcitx-pinyin novnc websockify supervisor
+
+# 复制本地桌面启动脚本
 RUN mkdir /tmp/docker-root
 COPY ./docker-root /tmp/docker-root/
 RUN chmod -R 755 /tmp/docker-root/
 RUN cp -r /tmp/docker-root/* /
 RUN rm -rf /tmp/docker-root
-# 下面wget可正常执行
-RUN wget -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb
-# 后续不变
 
+# 下载并安装百度网盘Linux客户端
+RUN wget -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb && \
+    apt-get install -f -y /tmp/baidunetdisk.deb && rm -f /tmp/baidunetdisk.deb
 
+# 创建普通用户user，初始化字体缓存
+RUN useradd -m user && chsh -s /bin/bash user && \
+    mkdir -p /home/user/.fonts/ && \
+    chown -R user:user /home/user && \
+    su user -c 'fc-cache -v'
 
-RUN apt-get update && \
-	apt-get install -y wget language-pack-zh-hans tzdata fontconfig fonts-wqy-zenhei && \
-	apt-get install -y --no-install-recommends fcitx fcitx-ui-classic fcitx-pinyin && \
-	apt-get install -y dbus-user-session xfe curl
-
-
-RUN apt-get install -f -y /tmp/baidunetdisk.deb && \
-	rm -f /tmp/baidunetdisk.deb
-
-RUN chsh -s /bin/bash user && \
-	mkdir -p /home/user/.fonts/ && \
-	chown -R user:user /home/user && \
-	su user -c 'fc-cache -v'
-
-RUN apt-get autoremove -y && \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists
-
-ENV LANG=zh_CN.UTF-8 \
-    LC_ALL=zh_CN.UTF-8 \
-    TZ=Asia/Shanghai
+# 清理apt缓存减小镜像大小
+RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists
 
 VOLUME ["/home/user/.config/baidunetdisk"]
+EXPOSE 8080
