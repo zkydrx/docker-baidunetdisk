@@ -1,4 +1,4 @@
-FROM dockerguiimages/docker-novnc:latest-amd64-2204
+FROM lscr.io/linuxserver/ubuntu-desktop:jammy
 
 RUN mkdir /tmp/docker-root
 COPY ./docker-root /tmp/docker-root/
