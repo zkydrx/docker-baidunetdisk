@@ -3,35 +3,42 @@
 # 使用官方Ubuntu22.04，国内加速器可稳定拉取，无限流
 FROM ubuntu:22.04
 
-# 先安装语言包，再定义中文环境，消除locale警告
-RUN apt-get update && apt-get install -y --no-install-recommends language-pack-zh-hans tzdata
-ENV LANG=zh_CN.UTF-8 \
-    LC_ALL=zh_CN.UTF-8 \
+# 关键：关闭apt交互弹窗，消除debconf Dialog警告
+ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai
 
-# 一次性安装全部依赖：wget、桌面、中文字体、输入法、novnc
+# 安装中文语言包、时区组件，生成zh_CN.UTF-8
+RUN apt-get update && apt-get install -y --no-install-recommends language-pack-zh-hans tzdata locales && \
+    # 手动生成中文locale，彻底解决perl语言警告
+    locale-gen zh_CN.UTF-8
+
+# 全局语言环境
+ENV LANG=zh_CN.UTF-8 \
+    LC_ALL=zh_CN.UTF-8
+
+# 一次性安装全部运行依赖（wget/桌面/字体/输入法/novnc）
 RUN apt-get install -y --no-install-recommends \
     wget curl fontconfig fonts-wqy-zenhei \
     xorg openbox xfe dbus-user-session fcitx fcitx-ui-classic fcitx-pinyin novnc websockify supervisor
 
-# 复制本地桌面启动脚本
+# 复制桌面启动脚本
 RUN mkdir /tmp/docker-root
 COPY ./docker-root /tmp/docker-root/
 RUN chmod -R 755 /tmp/docker-root/
 RUN cp -r /tmp/docker-root/* /
 RUN rm -rf /tmp/docker-root
 
-# 下载并安装百度网盘Linux客户端
-RUN wget -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb && \
+# 下载安装百度网盘Linux客户端，增加wget超时重试
+RUN wget --tries=5 --timeout=10 -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb && \
     apt-get install -f -y /tmp/baidunetdisk.deb && rm -f /tmp/baidunetdisk.deb
 
-# 创建普通用户user，初始化字体缓存
+# 创建普通用户，初始化字体缓存
 RUN useradd -m user && chsh -s /bin/bash user && \
     mkdir -p /home/user/.fonts/ && \
     chown -R user:user /home/user && \
     su user -c 'fc-cache -v'
 
-# 清理apt缓存减小镜像大小
+# 清理apt缓存，缩小镜像体积
 RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists
 
 VOLUME ["/home/user/.config/baidunetdisk"]
