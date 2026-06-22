@@ -12,8 +12,7 @@ RUN cp -r /tmp/docker-root/* /
 RUN rm -rf /tmp/docker-root
 
 ### RUN wget -O /tmp/baidunetdisk.deb https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb
-RUN wget -O /tmp/baidunetdisk.deb  https://4fdc31-987634562.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb
-
+RUN wget -O /tmp/baidunetdisk.deb  https://pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/8.5.2.427/baidunetdisk_8.5.2_amd64.deb
 
 
 
